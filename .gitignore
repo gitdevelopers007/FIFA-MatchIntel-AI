@@ -1,0 +1,40 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+.venv/
+venv/
+ENV/
+env/
+
+# Build outputs
+dist/
+tmp/
+out/
+build/
+.parcel-cache
+.cache
+
+# Databases & Cache
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Scratch/temp
+scratch/

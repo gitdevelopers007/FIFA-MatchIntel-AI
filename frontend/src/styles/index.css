@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --color-fifa-green: #00df89;
+  --color-fifa-teal: #00a4b4;
+  --color-fifa-gold: #f8c21b;
+  --color-fifa-purple: #4c1d95;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #0b0f19;
+  color: #f3f4f6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism Panel styles */
+.glass-panel {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(0, 223, 137, 0.3);
+  box-shadow: 0 0 20px rgba(0, 223, 137, 0.1);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 223, 137, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 223, 137, 0.6);
+}
+
+/* Glowing text and animations */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.98); }
+}
+
+.pulse-slow {
+  animation: pulse-slow 3s infinite ease-in-out;
+}
+
+.glow-text-green {
+  text-shadow: 0 0 10px rgba(0, 223, 137, 0.4);
+}
+
+.glow-border-gold:focus {
+  border-color: #f8c21b;
+  box-shadow: 0 0 12px rgba(248, 194, 27, 0.3);
+}
+
+.glow-border-green:focus {
+  border-color: #00df89;
+  box-shadow: 0 0 12px rgba(0, 223, 137, 0.3);
+}
+
+/* Map specific styling */
+.map-canvas-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
