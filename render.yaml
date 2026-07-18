@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: fifa-matchintel-ai
+    runtime: python
+    buildCommand: "pip install -r deploy/requirements.txt && cd frontend && npm install && npm run build && cp -r dist/* ../deploy/static/ && cp public/fifa_stadium_hero.png ../deploy/static/ && cd .. && python backend/seed_db.py"
+    startCommand: "cd deploy && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: NODE_VERSION
+        value: "20"
