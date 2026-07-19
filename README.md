@@ -1,109 +1,172 @@
-# FIFA MatchIntel AI - FIFA World Cup 2026 Smart Stadiums
+# FIFA MatchIntel AI
 
-FIFA MatchIntel AI is a production-grade Generative AI-powered Stadium Intelligence Platform designed to elevate stadium operations and the overall tournament experience for fans, organizers, volunteers, and emergency venue staff during the FIFA World Cup 2026.
+FIFA MatchIntel AI is a generative AI stadium intelligence platform for FIFA World Cup 2026 smart stadium operations. It combines role-based dashboards, live operational data, and a context-aware AI copilot for fans, volunteers, security teams, medical staff, and tournament organizers.
 
-The project is built using **Clean Architecture** principles to separate concerns between the UI Presentation layer, Local database query services, and the Generative AI inference pipeline.
+## Challenge Fit
 
----
+Selected vertical: Smart Stadiums and Tournament Operations.
 
-## 🏟️ Chosen Vertical & Persona Logic
+The platform supports the full match-day flow:
+- Fans: gate queues, seat guidance, food wait times, transport updates, accessibility locations, and multilingual AI assistance.
+- Volunteers: operational checklists, incident reporting, crowd guidance, and task status updates.
+- Security: incident triage, gate congestion monitoring, crowd risk awareness, and dispatch support.
+- Medical: AED and first-aid routing, emergency incident visibility, and responder decision support.
+- Organizers: occupancy metrics, sustainability scores, transport status, disruption simulation, and live control-room updates.
 
-We chose the **Smart Stadiums & Tournament Operations** vertical. The platform provides customized dashboards and AI copilots customized to the active user's role:
-1. **Fans & International Tourists**: Access gate security check-in queues, seating paths, food stall wait times with sustainability indices, transit planners, and a Lost & Found alert desk.
-2. **Volunteers**: Track assigned operational tasks, check off completed guidelines, and log real-time stadium incidents.
-3. **Security & Medical Dispatch Teams**: Review dispatcher logs, dispatch response personnel to incidents, locate medical hubs/AED safety machines, and view active SVG crowd heatmaps.
-4. **Operations & Tournament Managers**: Monitor global occupancy, average queue metrics, active safety alarms, sustainability scores, and trigger real-time disruption simulations to test emergency response workflows.
+## Key Features
 
----
+- Role-based dashboards for fan, volunteer, security, medical, and operations personas.
+- AI copilot backed by current stadium data from SQLite, with Gemini support when `GEMINI_API_KEY` is configured.
+- Local fallback AI engine for reliable demos without external API access.
+- Live operations control room for gates, concessions, transport routes, match status, and incidents.
+- Interactive stadium map and role-aware operational context.
+- Accessibility-focused UI controls with labels, ARIA state, keyboard-friendly persona selection, and high-contrast theme support.
+- Security hardening through bounded request validation, bearer session checks for chat and mutation routes, and restricted CORS origins.
+- Deploy-ready FastAPI and Vite build path with synced source and deploy backend modules.
 
-## 🛠️ Tech Stack & Architecture
+## Architecture
 
-### Frontend (Presentation Layer)
-- **React 19 & TypeScript**: Component modularity and strict type safety.
-- **Vite**: Ultra-fast bundler and development server.
-- **Tailwind CSS v4**: Theme styling, glassmorphism panel backings, and neon-pulse micro-animations.
-- **Lucide Icons**: Premium iconography.
-
-### Backend (Business Logic & Data Layer)
-- **Python 3.14 / FastAPI**: REST API handling request validation and unified JSON formatting.
-- **SQLite & SQLAlchemy ORM**: Relational schema supporting easy migration to PostgreSQL.
-- **Google GenAI SDK**: Orchestrates intent categorization, safety checks, and prompt assembly.
-
----
-
-## 🧠 Context-Aware AI Pipeline
-
-To prevent sending raw user input directly to the LLM, the platform implements a safety context enrichment pipeline:
-1. **User Request**: Collects input message, user role context, active language, and seat section.
-2. **Intent Parsing**: Categorizes intent into `emergency`, `navigation`, `transport`, `food`, `crowd`, or `operations`.
-3. **Context Enrichment**: Directly queries the SQLite database for current facts (e.g. "Gate C is congested", "Express Train leaves in 6 mins").
-4. **LLM Assembly & Validation**: Populates a role-based system template with stadium facts, sends it to Gemini (via `gemini-2.5-flash`), and validates the JSON response.
-5. **Fallback Simulation**: If no `GEMINI_API_KEY` is provided, a local matching rules engine parses the keywords against current database facts to produce high-fidelity, context-aware responses.
-
----
-
-## 📂 Project Structure
-
-```
+```text
 FIFA MatchIntel AI/
-├── backend/
-│   ├── app/
-│   │   ├── api/             # FastAPI REST endpoints
-│   │   ├── core/            # Settings, DB config, CORS middlewares
-│   │   ├── models/          # SQLAlchemy Database Models
-│   │   ├── schemas/         # Pydantic request/response schemas
-│   │   ├── services/        # AI Service, local DB services
-│   │   └── main.py          # FastAPI startup entry point
-│   ├── requirements.txt     # Backend python dependencies
-│   └── seed_db.py           # Database bootstrap & mock seeder
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # DesignSystem items, SVG InteractiveMap, ChatAssistant
-│   │   ├── contexts/        # AppContext (Role, Language, Themes, Toasts)
-│   │   ├── pages/           # LandingPage, FanDashboard, Volunteer, Operations
-│   │   ├── services/        # Axios API Client
-│   │   ├── styles/          # Tailwind CSS configuration
-│   │   └── main.tsx         # React DOM mount point
-│   ├── package.json
-│   └── vite.config.ts
-├── run.py                   # Development server launcher
-├── .env.example             # Secret config template
-└── .gitignore               # Keeps repo size < 10 MB by ignoring builds/node_modules
+  backend/
+    app/
+      api/          FastAPI routes and session guard
+      core/         settings, database, CORS configuration
+      models/       SQLAlchemy ORM models
+      schemas/      Pydantic validation schemas
+      services/     stadium data access and AI response logic
+    tests/          unittest coverage for auth and AI fallback
+  frontend/
+    src/
+      components/   design system, chat assistant, interactive map
+      contexts/     app state provider and useApp hook
+      pages/        persona dashboards and landing page
+      services/     Axios API client and local demo fallback
+  deploy/           deploy-oriented backend/static layout
 ```
 
----
+## AI Pipeline
 
-## 🚀 Getting Started
+1. The user sends a question with role, language, seat, and gate context.
+2. The backend classifies intent into emergency, navigation, transport, food, crowd, operations, or general.
+3. The data service injects current stadium facts: gates, stalls, medical stations, incidents, transport, and accessibility locations.
+4. Gemini returns structured JSON when configured.
+5. If Gemini is unavailable, a deterministic local engine returns fact-aware responses for reliable demos.
 
-### Prerequisites
+## Security Improvements
+
+- CORS is controlled through `BACKEND_CORS_ORIGINS`; wildcard origins are not used in source or deploy entrypoints.
+- Chat and write endpoints require a bearer session token.
+- Session tokens are deterministic SHA-256 session identifiers for demo use, not plain mock username strings.
+- Pydantic schemas bound chat payload size, incident text, statuses, wait times, and sustainability scores.
+- Endpoint 404 errors are preserved instead of being converted to generic 500 responses.
+- Environment secrets stay in `.env`; `.env.example` contains only safe placeholders.
+
+## Accessibility Improvements
+
+- Inputs are connected to labels with stable IDs.
+- Validation errors use `role="alert"` and `aria-invalid`.
+- Icon-only buttons include accessible labels.
+- Theme controls expose pressed state.
+- Persona selection uses radio-group semantics and keyboard-focusable buttons.
+- Loading indicators expose status labels.
+- Visible copy avoids mojibake and markdown symbols inside rendered UI.
+
+## Quality Checks
+
+Run backend tests:
+
+```bash
+python -m unittest discover -s backend/tests
+```
+
+Compile backend source:
+
+```bash
+python -m compileall backend/app deploy/backend
+```
+
+Run frontend lint:
+
+```bash
+cd frontend
+npm run lint
+```
+
+Build frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+Current local validation status:
+
+```text
+Backend tests: 9 tests passing
+Backend compile: passing
+Frontend lint: passing with zero warnings
+Frontend build: passing
+```
+
+## Local Setup
+
+Prerequisites:
 - Python 3.10+
-- Node.js v18+ & npm
+- Node.js 18+
+- npm
 
-### Setup & Run
-1. Clone the repository and navigate to the project directory:
-   ```bash
-   cd "FIFA MatchIntel AI"
-   ```
-2. Set up virtual environment and install backend requirements:
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate
-   pip install -r backend/requirements.txt
-   ```
-3. Install frontend node packages:
-   ```bash
-   cd frontend
-   npm install --registry=http://registry.npmjs.org/
-   cd ..
-   ```
-4. Copy the environment template and add your optional Gemini API Key:
-   ```bash
-   copy .env.example .env
-   ```
-5. Run the unified launcher script:
-   ```bash
-   python run.py
-   ```
-6. Open your browser:
-   - **Frontend Console**: http://localhost:5173
-   - **FastAPI API Swagger Docs**: http://localhost:8000/docs
+Install backend dependencies:
+
+```bash
+pip install -r backend/requirements.txt
+```
+
+Install frontend dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+Configure environment:
+
+```bash
+copy .env.example .env
+```
+
+Run the unified development launcher:
+
+```bash
+python run.py
+```
+
+Open:
+- Frontend: `http://localhost:5173`
+- API docs: `http://localhost:8000/docs`
+
+## Demo Access Codes
+
+- Fan: `TKT-2026-9041`
+- Volunteer: `VOL-7704`
+- Security: `SEC-4512`
+- Medical: `MED-8092`
+- Organizer: `OPS-1234`
+
+## Deployment Notes
+
+Render deployment uses `render.yaml`.
+
+Docker/Hugging Face style deployment can use the root `Dockerfile`, which builds the Vite frontend, copies static assets, seeds the database, and serves FastAPI on port `7860`.
+
+Set production CORS explicitly:
+
+```env
+BACKEND_CORS_ORIGINS=https://your-frontend-domain.example
+```
+
+Optional Gemini support:
+
+```env
+GEMINI_API_KEY=your_key_here
+```

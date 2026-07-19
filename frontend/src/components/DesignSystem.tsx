@@ -56,8 +56,10 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
 
   return (
     <button
+      type={props.type ?? 'button'}
       className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={loading || props.disabled}
+      aria-busy={loading}
       {...props}
     >
       {loading ? (
@@ -111,16 +113,23 @@ interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const InputField: React.FC<InputFieldProps> = ({ label, error, className = '', ...props }) => {
+  const generatedId = React.useId();
+  const inputId = props.id || generatedId;
+  const errorId = `${inputId}-error`;
+
   return (
     <div className={`flex flex-col gap-1.5 w-full ${className}`}>
-      <label className="text-sm font-medium text-gray-300 tracking-wide">{label}</label>
+      <label htmlFor={inputId} className="text-sm font-medium text-gray-300 tracking-wide">{label}</label>
       <input
+        id={inputId}
+        aria-invalid={!!error}
+        aria-describedby={error ? errorId : props['aria-describedby']}
         className={`bg-[rgba(17,24,39,0.5)] border border-[rgba(255,255,255,0.1)] rounded-lg px-4 py-2.5 text-white transition-all duration-300 outline-none focus:border-[#00df89] focus:ring-1 focus:ring-[#00df89] ${
           error ? 'border-[#ef4444] focus:border-[#ef4444] focus:ring-[#ef4444]' : ''
         }`}
         {...props}
       />
-      {error && <span className="text-xs text-[#ef4444] font-medium mt-0.5">{error}</span>}
+      {error && <span id={errorId} role="alert" className="text-xs text-[#ef4444] font-medium mt-0.5">{error}</span>}
     </div>
   );
 };
@@ -145,7 +154,7 @@ export const Spinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }
   };
   return (
     <div className="flex justify-center items-center py-4">
-      <div className={`animate-spin rounded-full border-t-transparent border-r-transparent border-[#00df89] ${sizes[size]}`} />
+      <div className={`animate-spin rounded-full border-t-transparent border-r-transparent border-[#00df89] ${sizes[size]}`} role="status" aria-label="Loading" />
     </div>
   );
 };

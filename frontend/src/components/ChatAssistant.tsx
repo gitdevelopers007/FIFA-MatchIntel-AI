@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from '../contexts/useApp';
 import { api } from '../services/api';
 import type { ChatMessage } from '../types';
 import { GlassCard, Spinner } from './DesignSystem';
@@ -32,13 +32,13 @@ export const ChatAssistant: React.FC = () => {
   useEffect(() => {
     let greeting = `Hello! I am FIFA MatchIntel AI. How can I assist you with navigation, transportation, accessibility, queue metrics, or stadium operations today?`;
     if (userRole === 'security') {
-      greeting = `👮 SECURITY HUB ACTIVE. Threat Assessment & Crowd Mitigation copilot initialized. How can I assist you with safety alarms, deployment checks, or crowd risks?`;
+      greeting = `SECURITY HUB ACTIVE. Threat Assessment and Crowd Mitigation copilot initialized. How can I assist you with safety alarms, deployment checks, or crowd risks?`;
     } else if (userRole === 'medical') {
-      greeting = `🚨 MEDICAL DISPATCH CO-PILOT. Station clinic statuses and AED coordinates online. How can I help you route paramedic teams or view guidelines?`;
+      greeting = `MEDICAL DISPATCH COPILOT. Station clinic statuses and AED coordinates online. How can I help you route paramedic teams or view guidelines?`;
     } else if (userRole === 'volunteer') {
-      greeting = `🙋 VOLUNTEER COPILOT ONLINE. Ask for restroom navigation steps, sustainable food options, or how to report stadium issues.`;
+      greeting = `VOLUNTEER COPILOT ONLINE. Ask for restroom navigation steps, sustainable food options, or how to report stadium issues.`;
     } else if (userRole === 'organizer') {
-      greeting = `📊 TOURNAMENT DIRECTOR SUPPORT. Metrics, sustainability scores, and queue simulator metrics active. What reports can I compile?`;
+      greeting = `TOURNAMENT DIRECTOR SUPPORT. Metrics, sustainability scores, and queue simulator metrics active. What reports can I compile?`;
     }
 
     setMessages([
@@ -78,10 +78,10 @@ export const ChatAssistant: React.FC = () => {
       if (result.suggested_actions && result.suggested_actions.length > 0) {
         setSuggestedActions(result.suggested_actions);
       }
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "⚠️ Failed to fetch response. Please verify that uvicorn is running or check network."
+        content: "Failed to fetch response. Please verify that uvicorn is running or check network."
       }]);
     } finally {
       setLoading(false);
@@ -151,8 +151,10 @@ export const ChatAssistant: React.FC = () => {
             </select>
           </div>
           <button
+            type="button"
             onClick={handleClear}
             title="Clear Chat"
+            aria-label="Clear chat history"
             className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg text-gray-400 hover:text-white transition border border-[rgba(255,255,255,0.06)]"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -191,10 +193,10 @@ export const ChatAssistant: React.FC = () => {
               {/* Message Controls for Assistant replies */}
               {!isUser && (
                 <div className="flex items-center gap-2 pl-2">
-                  <button className="text-gray-500 hover:text-[#00df89] transition">
+                  <button type="button" aria-label="Mark response helpful" className="text-gray-500 hover:text-[#00df89] transition">
                     <ThumbsUp className="w-3 h-3" />
                   </button>
-                  <button className="text-gray-500 hover:text-[#ef4444] transition">
+                  <button type="button" aria-label="Mark response unhelpful" className="text-gray-500 hover:text-[#ef4444] transition">
                     <ThumbsDown className="w-3 h-3" />
                   </button>
                   <span className="text-[9px] text-gray-600">Decision Verified</span>
@@ -216,8 +218,10 @@ export const ChatAssistant: React.FC = () => {
       <div className="flex items-center gap-2 py-3 overflow-x-auto whitespace-nowrap scrollbar-none border-t border-[rgba(255,255,255,0.06)]">
         {suggestedActions.map((act, i) => (
           <button
+            type="button"
             key={i}
             onClick={() => handleSend(act)}
+            aria-label={`Ask: ${act}`}
             className="px-3 py-1.5 bg-gray-800/60 hover:bg-gray-700/80 rounded-full border border-[rgba(255,255,255,0.06)] text-[11px] font-semibold text-[#00df89] hover:text-white transition duration-300 active:scale-95"
           >
             {act}
@@ -228,6 +232,7 @@ export const ChatAssistant: React.FC = () => {
       {/* Form Input Bar */}
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={handleVoiceSimulate}
           disabled={voiceActive || loading}
           className={`p-3 rounded-lg border border-[rgba(255,255,255,0.08)] flex items-center justify-center transition-all ${
@@ -236,6 +241,7 @@ export const ChatAssistant: React.FC = () => {
               : 'bg-gray-800 text-gray-400 hover:text-white'
           }`}
           title="Simulate Voice Input"
+          aria-label="Simulate voice input"
         >
           <Mic className="w-4.5 h-4.5" />
         </button>
@@ -247,12 +253,15 @@ export const ChatAssistant: React.FC = () => {
           onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
           disabled={loading}
           placeholder="Ask MatchIntel Copilot..."
+          aria-label="Message MatchIntel Copilot"
           className="flex-1 bg-gray-800 border border-[rgba(255,255,255,0.08)] rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00df89] transition-all"
         />
 
         <button
+          type="button"
           onClick={() => handleSend(input)}
           disabled={loading || !input.trim()}
+          aria-label="Send message"
           className="p-3 bg-[#00df89] hover:bg-[#00c577] text-[#0b0f19] rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,223,137,0.3)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Send className="w-4.5 h-4.5" />

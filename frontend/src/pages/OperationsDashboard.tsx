@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from '../contexts/useApp';
 import { GlassCard, StatusBadge, CustomButton } from '../components/DesignSystem';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { ChatAssistant } from '../components/ChatAssistant';
 import { Users, AlertTriangle, Play, CheckCircle2, Leaf, BarChart2, ShieldAlert } from 'lucide-react';
+import type { FoodStall, Gate, Incident, Match, TransportRoute } from '../types';
 
 export const OperationsDashboard: React.FC = () => {
   const {
@@ -33,18 +34,18 @@ export const OperationsDashboard: React.FC = () => {
   // CONTROL ROOM FORM STATES
   // Match
   const [selMatchId, setSelMatchId] = useState<number>(matches[0]?.id || 1);
-  const [matchStatus, setMatchStatus] = useState('scheduled');
+  const [matchStatus, setMatchStatus] = useState<Match['status']>('scheduled');
   const [matchHome, setMatchHome] = useState('');
   const [matchAway, setMatchAway] = useState('');
 
   // Gate
   const [selGateId, setSelGateId] = useState<number>(gates[0]?.id || 1);
-  const [gateStatus, setGateStatus] = useState('open');
+  const [gateStatus, setGateStatus] = useState<Gate['status']>('open');
   const [gateQueue, setGateQueue] = useState(5);
 
   // Concession
   const [selStallId, setSelStallId] = useState<number>(foodStalls[0]?.id || 1);
-  const [stallStatus, setStallStatus] = useState('open');
+  const [stallStatus, setStallStatus] = useState<FoodStall['status']>('open');
   const [stallWait, setStallWait] = useState(5);
   const [stallSust, setStallSust] = useState(4.5);
   const [isNewStall, setIsNewStall] = useState(false);
@@ -54,11 +55,11 @@ export const OperationsDashboard: React.FC = () => {
 
   // Transit
   const [selRouteId, setSelRouteId] = useState<number>(routes[0]?.id || 1);
-  const [routeStatus, setRouteStatus] = useState('normal');
+  const [routeStatus, setRouteStatus] = useState<TransportRoute['status']>('normal');
   const [routeWait, setRouteWait] = useState(10);
   const [isNewRoute, setIsNewRoute] = useState(false);
   const [newRouteName, setNewRouteName] = useState('');
-  const [newRouteType, setNewRouteType] = useState('bus');
+  const [newRouteType, setNewRouteType] = useState<TransportRoute['type']>('bus');
   const [newRouteDest, setNewRouteDest] = useState('');
 
   // Form Submissions
@@ -130,7 +131,7 @@ export const OperationsDashboard: React.FC = () => {
     fetchTransport();
   };
 
-  const handleTriage = async (id: number, status: string) => {
+  const handleTriage = async (id: number, status: Incident['status']) => {
     setTriagingId(id);
     await updateIncident(id, status);
     setTriagingId(null);
@@ -206,6 +207,7 @@ export const OperationsDashboard: React.FC = () => {
       <div className="flex border-b border-[rgba(255,255,255,0.08)] gap-2">
         {(['metrics', 'map', 'control_room', 'copilot'] as const).map(tab => (
           <button
+            type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2 -mb-[2px] ${
@@ -344,7 +346,7 @@ export const OperationsDashboard: React.FC = () => {
           {/* Match Roster Form */}
           <GlassCard className="flex flex-col gap-4">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)] pb-2">
-              ⚽ FIFA Match Controller
+              FIFA Match Controller
             </h3>
             <form onSubmit={handleUpdateMatch} className="flex flex-col gap-4">
               <div className="flex flex flex-col gap-1">
@@ -387,7 +389,7 @@ export const OperationsDashboard: React.FC = () => {
                 <label className="text-xs text-gray-400 font-semibold">Match State</label>
                 <select
                   value={matchStatus}
-                  onChange={(e) => setMatchStatus(e.target.value)}
+                  onChange={(e) => setMatchStatus(e.target.value as Match['status'])}
                   className="bg-gray-800 border border-[rgba(255,255,255,0.1)] rounded p-2 text-xs text-white outline-none"
                 >
                   <option value="scheduled">Scheduled</option>
@@ -405,7 +407,7 @@ export const OperationsDashboard: React.FC = () => {
           {/* Security Gates Form */}
           <GlassCard className="flex flex-col gap-4">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[rgba(255,255,255,0.06)] pb-2">
-              🛡️ Security Checkpoints (Gates)
+              Security Checkpoints (Gates)
             </h3>
             <form onSubmit={handleUpdateGate} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
@@ -426,7 +428,7 @@ export const OperationsDashboard: React.FC = () => {
                   <label className="text-xs text-gray-400 font-semibold">Gate Status</label>
                   <select
                     value={gateStatus}
-                    onChange={(e) => setGateStatus(e.target.value)}
+                    onChange={(e) => setGateStatus(e.target.value as Gate['status'])}
                     className="bg-gray-800 border border-[rgba(255,255,255,0.1)] rounded p-2 text-xs text-white outline-none"
                   >
                     <option value="open">Open</option>
@@ -458,7 +460,7 @@ export const OperationsDashboard: React.FC = () => {
           <GlassCard className="flex flex-col gap-4">
             <div className="flex justify-between items-center border-b border-[rgba(255,255,255,0.06)] pb-2">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                🍔 Concessions (F&B stands)
+                Concessions (F&B stands)
               </h3>
               <button
                 type="button"
@@ -528,7 +530,7 @@ export const OperationsDashboard: React.FC = () => {
                   <label className="text-xs text-gray-400 font-semibold">Stall Status</label>
                   <select
                     value={stallStatus}
-                    onChange={(e) => setStallStatus(e.target.value)}
+                    onChange={(e) => setStallStatus(e.target.value as FoodStall['status'])}
                     className="bg-gray-800 border border-[rgba(255,255,255,0.1)] rounded p-2 text-xs text-white outline-none"
                   >
                     <option value="open">Open</option>
@@ -572,7 +574,7 @@ export const OperationsDashboard: React.FC = () => {
           <GlassCard className="flex flex-col gap-4">
             <div className="flex justify-between items-center border-b border-[rgba(255,255,255,0.06)] pb-2">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                🚌 Transit & Shuttles Planner
+                Transit & Shuttles Planner
               </h3>
               <button
                 type="button"
@@ -615,7 +617,7 @@ export const OperationsDashboard: React.FC = () => {
                       <label className="text-xs text-gray-400 font-semibold">Type</label>
                       <select
                         value={newRouteType}
-                        onChange={(e) => setNewRouteType(e.target.value)}
+                        onChange={(e) => setNewRouteType(e.target.value as TransportRoute['type'])}
                         className="bg-gray-800 border border-[rgba(255,255,255,0.1)] rounded p-2 text-xs text-white outline-none"
                       >
                         <option value="bus">Bus</option>
@@ -644,7 +646,7 @@ export const OperationsDashboard: React.FC = () => {
                   <label className="text-xs text-gray-400 font-semibold">Route Status</label>
                   <select
                     value={routeStatus}
-                    onChange={(e) => setRouteStatus(e.target.value)}
+                    onChange={(e) => setRouteStatus(e.target.value as TransportRoute['status'])}
                     className="bg-gray-800 border border-[rgba(255,255,255,0.1)] rounded p-2 text-xs text-white outline-none"
                   >
                     <option value="normal">Normal</option>
@@ -679,7 +681,7 @@ export const OperationsDashboard: React.FC = () => {
       {activeTab === 'copilot' && (
         <div className="flex flex-col gap-4">
           <div className="p-3 bg-[rgba(0,223,137,0.05)] border border-[rgba(0,223,137,0.15)] rounded-lg text-xs text-gray-300">
-            🧠 **Staff Decision Support**: The AI assistant has access to the active incidents log and gate capacities to draft responder action plans.
+            Staff Decision Support: The AI assistant has access to the active incidents log and gate capacities to draft responder action plans.
           </div>
           <ChatAssistant />
         </div>

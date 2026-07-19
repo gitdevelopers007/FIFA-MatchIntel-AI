@@ -72,12 +72,12 @@ class AIService:
         3. Keep recommendations practical and real-world.
         4. Explain your reasoning briefly.
         5. Return the output as a valid JSON object matching the schema:
-        {
+        {{
             "response": "Your natural language message to the user.",
             "intent": "emergency | navigation | transport | food | crowd | operations | general",
             "suggested_actions": ["Action A", "Action B"],
             "reasoning": "Brief explanation of your recommendation based on current facts."
-        }
+        }}
         """
 
         # 3. Call Gemini API if key is available
@@ -129,7 +129,7 @@ class AIService:
         if intent == "emergency":
             nearest_med = meds[0] if meds else None
             med_loc = f"Station {nearest_med.name} at {nearest_med.location}" if nearest_med else "nearest medical hub"
-            response = f"🚨 EMERGENCY DEPLOYED. I have routed your coordinates to the Medical Dispatch Team. Please proceed to the {med_loc} immediately. A First-Aid responder has been notified."
+            response = f"EMERGENCY DEPLOYED. I have routed your coordinates to the Medical Dispatch Team. Please proceed to the {med_loc} immediately. A First-Aid responder has been notified."
             actions = ["Navigate to Medical Station", "View Evacuation Routes"]
             reasoning = f"Emergency request detected. Prompted user to seek {med_loc} and notified responder role."
             
@@ -145,22 +145,35 @@ class AIService:
             delayed = [r for r in routes if r.status == "delayed"]
             normal = [r for r in routes if r.status == "normal"]
             
-            if delayed:
-                response = f"⚠️ Notice: Route **{delayed[0].name}** ({delayed[0].type}) is currently experiencing delays of up to {delayed[0].current_wait_time_mins} mins. We recommend using **Route {normal[0].name}** to {normal[0].destination} instead, which is running normally."
+            if delayed and normal:
+                response = f"Notice: Route **{delayed[0].name}** ({delayed[0].type}) is currently experiencing delays of up to {delayed[0].current_wait_time_mins} mins. We recommend using **Route {normal[0].name}** to {normal[0].destination} instead, which is running normally."
                 actions = [f"View Route {normal[0].name} Schedule", "Request Shuttle Parking"]
                 reasoning = f"Redirected user from delayed Route {delayed[0].name} to normal Route {normal[0].name}."
-            else:
+            elif delayed:
+                response = f"Notice: Route **{delayed[0].name}** is delayed by {delayed[0].current_wait_time_mins} mins and no normal alternate route is currently listed. Please use the transport desk at the nearest gate for live rerouting."
+                actions = ["Open Transport Desk", "View Gate Map"]
+                reasoning = f"Detected delayed Route {delayed[0].name} without a normal alternate route in the database."
+            elif routes:
                 response = f"All public transportation is currently operating normally. The next train at Route {routes[0].name} departs in {routes[0].current_wait_time_mins} minutes."
                 actions = ["Show Transit Timetables", "Open Parking Assistant"]
                 reasoning = "All transport operating normally, showed next departure."
+            else:
+                response = "No live transport routes are currently loaded. Please check the stadium transport desk or retry once data sync completes."
+                actions = ["Open Transport Desk", "Retry Transport Sync"]
+                reasoning = "No transport route records were available."
 
         elif intent == "food":
             vegan_healthy = [s for s in stalls if any(x in s.type.lower() for x in ["vegan", "healthy", "beverage"])]
-            best_stall = min(stalls, key=lambda x: x.current_wait_time_mins)
-            
-            response = f"Hungry? Check out **{best_stall.name}** at {best_stall.location}. The current queue wait time is approximately {best_stall.current_wait_time_mins} mins. Plus, it features a sustainability rating of {best_stall.sustainability_score}/5.0!"
-            actions = [f"Route to {best_stall.name}", "View Full F&B Menu"]
-            reasoning = f"Recommended {best_stall.name} based on the shortest wait time of {best_stall.current_wait_time_mins} minutes."
+            recommended_stalls = vegan_healthy or stalls
+            if recommended_stalls:
+                best_stall = min(recommended_stalls, key=lambda x: x.current_wait_time_mins)
+                response = f"Hungry? Check out **{best_stall.name}** at {best_stall.location}. The current queue wait time is approximately {best_stall.current_wait_time_mins} mins. Plus, it features a sustainability rating of {best_stall.sustainability_score}/5.0!"
+                actions = [f"Route to {best_stall.name}", "View Full F&B Menu"]
+                reasoning = f"Recommended {best_stall.name} based on availability and a {best_stall.current_wait_time_mins}-minute wait."
+            else:
+                response = "No concession data is loaded yet. Please check the nearest concourse board while the concessions feed refreshes."
+                actions = ["Refresh Concessions", "Show Nearest Concourse"]
+                reasoning = "No food stall records were available."
 
         elif intent == "crowd":
             congested = [g for g in gates if g.status == "congested"]

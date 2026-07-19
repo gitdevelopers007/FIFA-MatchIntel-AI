@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from '../contexts/useApp';
 import { GlassCard } from './DesignSystem';
 import { Compass, HelpCircle, Shield } from 'lucide-react';
 

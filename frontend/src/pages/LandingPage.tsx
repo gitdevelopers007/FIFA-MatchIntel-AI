@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useApp } from '../contexts/AppContext';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useApp } from '../contexts/useApp';
 import { api } from '../services/api';
 import { GlassCard, CustomButton, InputField } from '../components/DesignSystem';
 import { Shield, Sparkles, UserCheck, Accessibility, Compass, ShieldAlert, Award } from 'lucide-react';
@@ -60,7 +60,7 @@ export const LandingPage: React.FC = () => {
     }
   };
 
-  const meta = getPersonaMeta(selectedRole);
+  const meta = useMemo(() => getPersonaMeta(selectedRole), [selectedRole]);
 
   useEffect(() => {
     if (!accessIdInput) {
@@ -72,7 +72,7 @@ export const LandingPage: React.FC = () => {
     } else {
       setValidationError(null);
     }
-  }, [accessIdInput, selectedRole]);
+  }, [accessIdInput, meta.hint, meta.regex]);
 
   useEffect(() => {
     setAccessIdInput('');
@@ -107,9 +107,7 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#070b13] flex flex-col relative overflow-hidden text-gray-200">
-      {/* Abstract Glowing Background Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-[#00df89] opacity-5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#007ba8] opacity-5 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(7,11,19,0.86),rgba(7,11,19,0.94)),url('/fifa_stadium_hero.png')] bg-cover bg-center pointer-events-none" />
 
       {/* Global Landing Header */}
       <header className="w-full max-w-7xl mx-auto px-6 h-20 flex items-center justify-between border-b border-[rgba(255,255,255,0.05)] relative z-20">
@@ -134,7 +132,7 @@ export const LandingPage: React.FC = () => {
         {/* Left Side: Product Showcase (65% width on large screen) */}
         <div className="lg:col-span-7 flex flex-col gap-6">
           <div className="inline-flex items-center gap-2 bg-[#00df89]/10 border border-[#00df89]/20 px-3 py-1.5 rounded-full text-xs font-semibold text-[#00df89] tracking-wide w-max">
-            <span>⚽</span> FIFA World Cup 2026™ Operations Portal
+            <span aria-hidden="true">FIFA</span> World Cup 2026 Operations Portal
           </div>
           
           <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-[1.1] uppercase">
@@ -218,6 +216,7 @@ export const LandingPage: React.FC = () => {
 
             <form onSubmit={handleLogin} className="flex flex-col gap-5">
               <InputField
+                id="login-name"
                 label="Operator / Visitor Name"
                 placeholder="e.g. Liam, SecurityOfficer_A"
                 value={username}
@@ -227,28 +226,28 @@ export const LandingPage: React.FC = () => {
 
               <div className="flex flex-col gap-1">
                 <InputField
+                  id="access-id"
                   label={meta.label}
                   placeholder={meta.placeholder}
                   value={accessIdInput}
                   onChange={(e) => setAccessIdInput(e.target.value)}
                   required
+                  error={validationError || undefined}
                 />
                 <span className="text-[9px] text-gray-500 font-bold block px-1">{meta.hint}</span>
-                {validationError && (
-                  <span className="text-[10px] text-red-400 font-semibold block px-1 mt-1 animate-pulse">
-                    ⚠️ {validationError}
-                  </span>
-                )}
               </div>
 
               {/* Role Select list */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Select Access Persona</label>
-                <div className="flex flex-col gap-2 max-h-[190px] overflow-y-auto pr-1">
+                <span id="persona-label" className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Select Access Persona</span>
+                <div className="flex flex-col gap-2 max-h-[190px] overflow-y-auto pr-1" role="radiogroup" aria-labelledby="persona-label">
                   {rolesList.map(r => (
-                    <div
+                    <button
+                      type="button"
                       key={r.key}
                       onClick={() => setSelectedRole(r.key)}
+                      role="radio"
+                      aria-checked={selectedRole === r.key}
                       className={`p-3 rounded-lg border transition-all duration-300 cursor-pointer flex items-center justify-between ${
                         selectedRole === r.key
                           ? 'bg-[#00df89]/10 border-[#00df89] shadow-[0_0_10px_rgba(0,223,137,0.15)] font-bold'
@@ -260,7 +259,7 @@ export const LandingPage: React.FC = () => {
                         <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{r.desc}</p>
                       </div>
                       {selectedRole === r.key && <UserCheck className="w-4 h-4 text-[#00df89]" />}
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -282,9 +281,9 @@ export const LandingPage: React.FC = () => {
       {/* Global Footer */}
       <footer className="w-full border-t border-[rgba(255,255,255,0.05)] bg-[#04070d] py-6 relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-gray-500 font-medium">
-          <p>© 2026 FIFA World Cup Smart Stadiums operations. FIFA MatchIntel AI. All Rights Reserved.</p>
+          <p>Copyright 2026 FIFA World Cup Smart Stadiums operations. FIFA MatchIntel AI. All Rights Reserved.</p>
           <p className="flex items-center gap-1.5">
-            <Shield className="w-3 h-3" /> Secure socket connection • WCAG 2.2 Compliant • Gemini 2.5 Orchestration
+            <Shield className="w-3 h-3" /> Secure socket connection - WCAG 2.2 AA - Gemini 2.5 Orchestration
           </p>
         </div>
       </footer>

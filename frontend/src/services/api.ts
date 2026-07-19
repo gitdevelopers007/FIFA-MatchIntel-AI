@@ -11,6 +11,8 @@ const client = axios.create({
   timeout: 10000,
 });
 
+const LOCAL_SESSION_TOKEN = 'local-session-fallback';
+
 // Request interceptor to attach authentication tokens
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -26,7 +28,7 @@ export const api = {
   // Auth
   login: async (username: string, role: string, accessId: string): Promise<Types.User> => {
     try {
-      const res = await client.post('/auth/login', { username, role, access_id: accessId, password: 'password123' });
+      const res = await client.post('/auth/login', { username, role, access_id: accessId, password: '' });
       localStorage.setItem('token', res.data.access_token);
       localStorage.setItem('role', res.data.role);
       localStorage.setItem('username', res.data.username);
@@ -37,13 +39,13 @@ export const api = {
         token: res.data.access_token,
         accessId: res.data.access_id,
       };
-    } catch (err) {
+    } catch {
       console.warn("Failed connecting to backend. Falling back to local mock session.");
-      localStorage.setItem('token', 'mock-local-token');
+      localStorage.setItem('token', LOCAL_SESSION_TOKEN);
       localStorage.setItem('role', role);
       localStorage.setItem('username', username);
       localStorage.setItem('accessId', accessId);
-      return { username, role, token: 'mock-local-token', accessId };
+      return { username, role, token: LOCAL_SESSION_TOKEN, accessId };
     }
   },
 
@@ -66,7 +68,7 @@ export const api = {
         gate: gate
       });
       return res.data;
-    } catch (err) {
+    } catch {
       console.warn("Backend chat failed, using local simulation engine.");
       return simulateChatLocal(message, role, lang, seat);
     }
@@ -175,7 +177,7 @@ function simulateChatLocal(message: string, role: string, lang: string, seat?: s
 
   if (msg.includes("emergency") || msg.includes("hurt") || msg.includes("accident") || msg.includes("medical")) {
     intent = "emergency";
-    response = "🚨 EMERGENCY ACTIVE: I have alerted the Stadium Dispatch Team. Please make your way to the nearest Medical Center at Section 117 (North Plaza) immediately.";
+    response = "EMERGENCY ACTIVE: I have alerted the Stadium Dispatch Team. Please make your way to the nearest Medical Center at Section 117 (North Plaza) immediately.";
     suggested = ["Show Route to Medical Center", "Contact Security Duty Officer"];
   } else if (msg.includes("seat") || msg.includes("gate") || msg.includes("find") || msg.includes("where")) {
     intent = "navigation";

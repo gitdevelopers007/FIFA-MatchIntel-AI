@@ -29,10 +29,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
+cors_origins = [
+    origin.strip()
+    for origin in settings.BACKEND_CORS_ORIGINS.split(",")
+    if origin.strip()
+]
+
 # CORS Policy configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict to frontend domain
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

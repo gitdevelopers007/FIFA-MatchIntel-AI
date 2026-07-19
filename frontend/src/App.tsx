@@ -1,5 +1,6 @@
 import React from 'react';
-import { AppProvider, useApp } from './contexts/AppContext';
+import { AppProvider } from './contexts/AppContext';
+import { useApp } from './contexts/useApp';
 import { LandingPage } from './pages/LandingPage';
 import { FanDashboard } from './pages/FanDashboard';
 import { VolunteerDashboard } from './pages/VolunteerDashboard';
@@ -70,22 +71,31 @@ const AppContent: React.FC = () => {
             {/* Accessibility Profile Buttons */}
             <div className="flex items-center gap-1.5 bg-gray-800/80 px-2 py-1 rounded-lg border border-[rgba(255,255,255,0.06)]">
               <button
+                type="button"
                 onClick={() => setTheme('dark')}
                 title="Dark Theme"
+                aria-label="Use dark theme"
+                aria-pressed={theme === 'dark'}
                 className={`p-1.5 rounded transition ${theme === 'dark' ? 'bg-[#00df89]/20 text-[#00df89]' : 'text-gray-400 hover:text-white'}`}
               >
                 <Moon className="w-3.5 h-3.5" />
               </button>
               <button
+                type="button"
                 onClick={() => setTheme('light')}
                 title="Light Theme"
+                aria-label="Use light theme"
+                aria-pressed={theme === 'light'}
                 className={`p-1.5 rounded transition ${theme === 'light' ? 'bg-[#00df89]/20 text-[#00df89]' : 'text-gray-400 hover:text-white'}`}
               >
                 <Sun className="w-3.5 h-3.5" />
               </button>
               <button
+                type="button"
                 onClick={() => setTheme('contrast')}
                 title="High Contrast (WCAG 2.2 AA)"
+                aria-label="Use high contrast theme"
+                aria-pressed={theme === 'contrast'}
                 className={`p-1.5 rounded transition ${theme === 'contrast' ? 'bg-[#00df89]/20 text-[#00df89]' : 'text-gray-400 hover:text-white'}`}
               >
                 <Eye className="w-3.5 h-3.5" />
@@ -100,8 +110,10 @@ const AppContent: React.FC = () => {
 
             {/* Logout Trigger */}
             <button
+              type="button"
               onClick={() => { setUserRole(''); localStorage.clear(); }}
               title="Logout Session"
+              aria-label="Logout session"
               className="p-2 bg-gray-800 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-gray-400 transition border border-[rgba(255,255,255,0.06)] flex items-center justify-center active:scale-95"
             >
               <LogOut className="w-4 h-4" />
@@ -112,7 +124,7 @@ const AppContent: React.FC = () => {
 
       {/* SYSTEM BROADCAST NOTIFICATION */}
       <div className="bg-[#00df89]/10 border-b border-[#00df89]/10 py-2.5 px-4 text-center text-xs text-gray-300 font-medium">
-        ⚽ **Tournament Update**: MetLife Stadium security gates open. **Spain vs Argentina Final** kickoff scheduled for Monday. Monitor crowd check-ins.
+        Tournament Update: MetLife Stadium security gates are open. Spain vs Argentina Final kickoff is scheduled for Monday. Monitor crowd check-ins.
       </div>
 
       {/* DASHBOARD CONTENT BODY */}
@@ -122,9 +134,9 @@ const AppContent: React.FC = () => {
 
       {/* FOOTER */}
       <footer className="border-t border-[rgba(255,255,255,0.08)] bg-slate-950/40 py-6 text-center text-[10px] text-gray-500 font-medium">
-        <p>© 2026 FIFA World Cup Smart Stadiums operations. FIFA MatchIntel AI. All Rights Reserved.</p>
+        <p>Copyright 2026 FIFA World Cup Smart Stadiums operations. FIFA MatchIntel AI. All Rights Reserved.</p>
         <p className="mt-1 flex items-center justify-center gap-1.5">
-          <Shield className="w-3 h-3" /> Secure socket connection • WCAG 2.2 Compliant • Gemini 2.5 Orchestration
+          <Shield className="w-3 h-3" /> Secure socket connection - WCAG 2.2 AA - Gemini 2.5 Orchestration
         </p>
       </footer>
     </div>

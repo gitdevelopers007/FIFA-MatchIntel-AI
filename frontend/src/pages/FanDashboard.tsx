@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../contexts/AppContext';
+import { useApp } from '../contexts/useApp';
 import { GlassCard, StatusBadge, CustomButton, InputField } from '../components/DesignSystem';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { ChatAssistant } from '../components/ChatAssistant';
