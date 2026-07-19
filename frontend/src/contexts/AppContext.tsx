@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import * as Types from '../types';
 import { api } from '../services/api';
 import { AppContext } from './AppContextCore';
@@ -264,59 +264,100 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTheme('dark');
   }, [fetchFoodStalls, fetchGates, fetchIncidents, fetchMatches, fetchMetrics, fetchTransport, userRole]);
 
-  // Periodically refresh data
+  // Periodically refresh data only when tab is visible
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetchIncidents();
-      fetchMetrics();
-      fetchGates();
-      fetchMatches();
-    }, 15000);
-    return () => clearInterval(interval);
+    const refreshData = () => {
+      if (document.visibilityState === 'visible') {
+        fetchIncidents();
+        fetchMetrics();
+        fetchGates();
+        fetchMatches();
+      }
+    };
+
+    const interval = setInterval(refreshData, 15000);
+    
+    // Add event listener to refresh immediately when tab becomes visible again
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [fetchGates, fetchIncidents, fetchMatches, fetchMetrics]);
 
+  // Memoize context value to prevent unnecessary re-renders in children consumers
+  const contextValue = useMemo(() => ({
+    userRole,
+    setUserRole,
+    accessId,
+    setAccessId,
+    language,
+    setLanguage,
+    theme,
+    setTheme,
+    seatSection,
+    setSeatSection,
+    userGate,
+    setUserGate,
+    selectedMatchId,
+    setSelectedMatchId,
+    activeRoute,
+    setActiveRoute,
+    notifications,
+    addNotification,
+    clearNotifications,
+    incidents,
+    fetchIncidents,
+    reportIncident,
+    updateIncident,
+    gates,
+    fetchGates,
+    foodStalls,
+    fetchFoodStalls,
+    routes,
+    fetchTransport,
+    metrics,
+    fetchMetrics,
+    matches,
+    fetchMatches,
+    updateGateState,
+    updateFoodStallState,
+    createFoodStallState,
+    updateTransportRouteState,
+    createTransportRouteState,
+    updateMatchState
+  }), [
+    userRole,
+    accessId,
+    language,
+    theme,
+    seatSection,
+    userGate,
+    selectedMatchId,
+    activeRoute,
+    notifications,
+    incidents,
+    gates,
+    foodStalls,
+    routes,
+    metrics,
+    matches,
+    fetchIncidents,
+    fetchGates,
+    fetchFoodStalls,
+    fetchTransport,
+    fetchMetrics,
+    fetchMatches
+  ]);
+
   return (
-    <AppContext.Provider value={{
-      userRole,
-      setUserRole,
-      accessId,
-      setAccessId,
-      language,
-      setLanguage,
-      theme,
-      setTheme,
-      seatSection,
-      setSeatSection,
-      userGate,
-      setUserGate,
-      selectedMatchId,
-      setSelectedMatchId,
-      activeRoute,
-      setActiveRoute,
-      notifications,
-      addNotification,
-      clearNotifications,
-      incidents,
-      fetchIncidents,
-      reportIncident,
-      updateIncident,
-      gates,
-      fetchGates,
-      foodStalls,
-      fetchFoodStalls,
-      routes,
-      fetchTransport,
-      metrics,
-      fetchMetrics,
-      matches,
-      fetchMatches,
-      updateGateState,
-      updateFoodStallState,
-      createFoodStallState,
-      updateTransportRouteState,
-      createTransportRouteState,
-      updateMatchState
-    }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

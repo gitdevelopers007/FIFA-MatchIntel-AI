@@ -1,20 +1,34 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { AppProvider } from './contexts/AppContext';
 import { useApp } from './contexts/useApp';
-import { LandingPage } from './pages/LandingPage';
-import { FanDashboard } from './pages/FanDashboard';
-import { VolunteerDashboard } from './pages/VolunteerDashboard';
-import { OperationsDashboard } from './pages/OperationsDashboard';
-import { SecurityDashboard } from './pages/SecurityDashboard';
-import { MedicalDashboard } from './pages/MedicalDashboard';
 import { Shield, Sparkles, LogOut, Sun, Moon, Eye } from 'lucide-react';
+
+const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
+const FanDashboard = lazy(() => import('./pages/FanDashboard').then(m => ({ default: m.FanDashboard })));
+const VolunteerDashboard = lazy(() => import('./pages/VolunteerDashboard').then(m => ({ default: m.VolunteerDashboard })));
+const OperationsDashboard = lazy(() => import('./pages/OperationsDashboard').then(m => ({ default: m.OperationsDashboard })));
+const SecurityDashboard = lazy(() => import('./pages/SecurityDashboard').then(m => ({ default: m.SecurityDashboard })));
+const MedicalDashboard = lazy(() => import('./pages/MedicalDashboard').then(m => ({ default: m.MedicalDashboard })));
+
+const LoadingFallback: React.FC = () => (
+  <div className="min-h-screen bg-[#0b0f19] flex flex-col items-center justify-center text-gray-200">
+    <div className="w-10 h-10 border-4 border-[#00df89] border-t-transparent rounded-full animate-spin mb-4" />
+    <span className="text-xs font-semibold uppercase tracking-widest text-[#00df89] animate-pulse">
+      Loading Dashboard Console...
+    </span>
+  </div>
+);
 
 const AppContent: React.FC = () => {
   const { userRole, setUserRole, theme, setTheme, accessId } = useApp();
 
   // If user role is not logged in, render the LandingPage
   if (!userRole) {
-    return <LandingPage />;
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <LandingPage />
+      </Suspense>
+    );
   }
 
   const renderDashboard = () => {
@@ -129,7 +143,9 @@ const AppContent: React.FC = () => {
 
       {/* DASHBOARD CONTENT BODY */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {renderDashboard()}
+        <Suspense fallback={<LoadingFallback />}>
+          {renderDashboard()}
+        </Suspense>
       </main>
 
       {/* FOOTER */}

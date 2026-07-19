@@ -7,6 +7,7 @@ from backend.app.core.database import get_db
 from backend.app.schemas import schemas
 from backend.app.services.data_services import DataService
 from backend.app.services.ai_service import AIService
+from backend.app.services.cache_service import cache
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -86,7 +87,12 @@ def chat_completion(
 @router.get("/matches", response_model=List[schemas.MatchResponse])
 def get_matches(db: Session = Depends(get_db)):
     try:
-        return DataService.get_matches(db)
+        cached = cache.get("matches")
+        if cached is not None:
+            return cached
+        res = DataService.get_matches(db)
+        cache.set("matches", res, ttl=5)
+        return res
     except Exception as e:
         logger.error(f"Failed to fetch matches: {str(e)}")
         raise HTTPException(status_code=500, detail="Database read failure")
@@ -94,7 +100,12 @@ def get_matches(db: Session = Depends(get_db)):
 @router.get("/gates", response_model=List[schemas.GateResponse])
 def get_gates(db: Session = Depends(get_db)):
     try:
-        return DataService.get_stadium_gates(db)
+        cached = cache.get("gates")
+        if cached is not None:
+            return cached
+        res = DataService.get_stadium_gates(db)
+        cache.set("gates", res, ttl=5)
+        return res
     except Exception as e:
         logger.error(f"Failed to fetch gates: {str(e)}")
         raise HTTPException(status_code=500, detail="Database read failure")
@@ -102,7 +113,12 @@ def get_gates(db: Session = Depends(get_db)):
 @router.get("/food-stalls", response_model=List[schemas.FoodStallResponse])
 def get_food_stalls(db: Session = Depends(get_db)):
     try:
-        return DataService.get_food_stalls(db)
+        cached = cache.get("food-stalls")
+        if cached is not None:
+            return cached
+        res = DataService.get_food_stalls(db)
+        cache.set("food-stalls", res, ttl=5)
+        return res
     except Exception as e:
         logger.error(f"Failed to fetch food stalls: {str(e)}")
         raise HTTPException(status_code=500, detail="Database read failure")
@@ -110,7 +126,12 @@ def get_food_stalls(db: Session = Depends(get_db)):
 @router.get("/transport", response_model=List[schemas.TransportRouteResponse])
 def get_transport(db: Session = Depends(get_db)):
     try:
-        return DataService.get_transport_routes(db)
+        cached = cache.get("transport")
+        if cached is not None:
+            return cached
+        res = DataService.get_transport_routes(db)
+        cache.set("transport", res, ttl=5)
+        return res
     except Exception as e:
         logger.error(f"Failed to fetch transport routes: {str(e)}")
         raise HTTPException(status_code=500, detail="Database read failure")
@@ -118,7 +139,12 @@ def get_transport(db: Session = Depends(get_db)):
 @router.get("/accessibility", response_model=List[schemas.AccessibilityLocationResponse])
 def get_accessibility(db: Session = Depends(get_db)):
     try:
-        return DataService.get_accessibility_locations(db)
+        cached = cache.get("accessibility")
+        if cached is not None:
+            return cached
+        res = DataService.get_accessibility_locations(db)
+        cache.set("accessibility", res, ttl=5)
+        return res
     except Exception as e:
         logger.error(f"Failed to fetch accessibility routes: {str(e)}")
         raise HTTPException(status_code=500, detail="Database read failure")
@@ -127,7 +153,12 @@ def get_accessibility(db: Session = Depends(get_db)):
 @router.get("/incidents", response_model=List[schemas.IncidentResponse])
 def get_incidents(db: Session = Depends(get_db)):
     try:
-        return DataService.get_all_incidents(db)
+        cached = cache.get("incidents")
+        if cached is not None:
+            return cached
+        res = DataService.get_all_incidents(db)
+        cache.set("incidents", res, ttl=5)
+        return res
     except Exception as e:
         logger.error(f"Failed to fetch incidents: {str(e)}")
         raise HTTPException(status_code=500, detail="Database read failure")
@@ -140,6 +171,8 @@ def report_incident(
 ):
     try:
         new_inc = DataService.create_incident(db, incident)
+        cache.invalidate("incidents")
+        cache.invalidate("metrics")
         logger.info(f"New incident logged: {new_inc.title} at {new_inc.location}")
         return new_inc
     except Exception as e:
@@ -157,6 +190,8 @@ def update_incident_status(
         updated = DataService.update_incident_status(db, incident_id, update.status)
         if not updated:
             raise HTTPException(status_code=404, detail="Incident not found")
+        cache.invalidate("incidents")
+        cache.invalidate("metrics")
         logger.info(f"Incident {incident_id} status updated to {update.status}")
         return updated
     except HTTPException as he:
@@ -169,7 +204,12 @@ def update_incident_status(
 @router.get("/analytics/metrics", response_model=schemas.OperationsMetrics)
 def get_operations_metrics(db: Session = Depends(get_db)):
     try:
-        return DataService.get_operations_metrics(db)
+        cached = cache.get("metrics")
+        if cached is not None:
+            return cached
+        res = DataService.get_operations_metrics(db)
+        cache.set("metrics", res, ttl=5)
+        return res
     except Exception as e:
         logger.error(f"Failed to calculate analytics: {str(e)}")
         raise HTTPException(status_code=500, detail="Analytics aggregator failure")
@@ -178,7 +218,12 @@ def get_operations_metrics(db: Session = Depends(get_db)):
 @router.get("/volunteers")
 def get_volunteers(db: Session = Depends(get_db)):
     try:
-        return DataService.get_volunteers(db)
+        cached = cache.get("volunteers")
+        if cached is not None:
+            return cached
+        res = DataService.get_volunteers(db)
+        cache.set("volunteers", res, ttl=5)
+        return res
     except Exception as e:
         logger.error(f"Failed to load volunteers: {str(e)}")
         raise HTTPException(status_code=500, detail="Database read failure")
@@ -195,6 +240,8 @@ def update_volunteer_task(
         updated = DataService.update_volunteer_task(db, volunteer_id, task, status)
         if not updated:
             raise HTTPException(status_code=404, detail="Volunteer record not found")
+        cache.invalidate("volunteers")
+        cache.invalidate("metrics")
         return updated
     except Exception as e:
         logger.error(f"Failed to update volunteer: {str(e)}")
@@ -212,6 +259,8 @@ def update_gate(
         res = DataService.update_gate(db, gate_id, update.status, update.current_queue_time_mins)
         if not res:
             raise HTTPException(status_code=404, detail="Gate not found")
+        cache.invalidate("gates")
+        cache.invalidate("metrics")
         return res
     except HTTPException:
         raise
@@ -230,6 +279,8 @@ def update_food_stall(
         res = DataService.update_food_stall(db, stall_id, update.status, update.current_wait_time_mins, update.sustainability_score)
         if not res:
             raise HTTPException(status_code=404, detail="Concession stall not found")
+        cache.invalidate("food-stalls")
+        cache.invalidate("metrics")
         return res
     except HTTPException:
         raise
@@ -244,9 +295,12 @@ def create_food_stall(
     _: str = Depends(require_session),
 ):
     try:
-        return DataService.create_food_stall(
+        res = DataService.create_food_stall(
             db, stall.name, stall.type, stall.location, stall.status, stall.current_wait_time_mins, stall.sustainability_score
         )
+        cache.invalidate("food-stalls")
+        cache.invalidate("metrics")
+        return res
     except Exception as e:
         logger.error(f"Failed to create food stall: {str(e)}")
         raise HTTPException(status_code=500, detail="Database write failure")
@@ -262,6 +316,8 @@ def update_transport_route(
         res = DataService.update_transport_route(db, route_id, update.status, update.current_wait_time_mins)
         if not res:
             raise HTTPException(status_code=404, detail="Transit route not found")
+        cache.invalidate("transport")
+        cache.invalidate("metrics")
         return res
     except HTTPException:
         raise
@@ -276,9 +332,12 @@ def create_transport_route(
     _: str = Depends(require_session),
 ):
     try:
-        return DataService.create_transport_route(
+        res = DataService.create_transport_route(
             db, route.name, route.type, route.destination, route.status, route.current_wait_time_mins
         )
+        cache.invalidate("transport")
+        cache.invalidate("metrics")
+        return res
     except Exception as e:
         logger.error(f"Failed to create transport route: {str(e)}")
         raise HTTPException(status_code=500, detail="Database write failure")
@@ -294,6 +353,8 @@ def update_match(
         res = DataService.update_match(db, match_id, update.status, update.home_team, update.away_team)
         if not res:
             raise HTTPException(status_code=404, detail="Match details not found")
+        cache.invalidate("matches")
+        cache.invalidate("metrics")
         return res
     except HTTPException:
         raise

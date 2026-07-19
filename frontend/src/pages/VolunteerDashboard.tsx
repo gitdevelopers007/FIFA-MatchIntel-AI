@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/useApp';
+import * as Types from '../types';
 import { GlassCard, CustomButton, InputField } from '../components/DesignSystem';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { ChatAssistant } from '../components/ChatAssistant';
@@ -171,7 +172,7 @@ export const VolunteerDashboard: React.FC = () => {
                 <label className="text-xs font-semibold text-gray-400 uppercase">Category</label>
                 <select
                   value={category}
-                  onChange={(e: any) => setCategory(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategory(e.target.value as Types.Incident['category'])}
                   className="bg-gray-800 border border-[rgba(255,255,255,0.1)] rounded-lg p-2 text-xs text-white outline-none focus:border-[#00df89]"
                 >
                   <option value="crowd">Crowd & Bottlenecks</option>
@@ -186,7 +187,7 @@ export const VolunteerDashboard: React.FC = () => {
                 <label className="text-xs font-semibold text-gray-400 uppercase">Severity Level</label>
                 <select
                   value={severity}
-                  onChange={(e: any) => setSeverity(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSeverity(e.target.value as Types.Incident['severity'])}
                   className="bg-gray-800 border border-[rgba(255,255,255,0.1)] rounded-lg p-2 text-xs text-white outline-none focus:border-[#00df89]"
                 >
                   <option value="low">Low (Standard Checklist Audit)</option>
